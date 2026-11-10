@@ -10,9 +10,8 @@
 <style>
 /* ------------------------------------------------------------------
    PAM: the only two things you ever need to change are here.
-   1. UNLOCKED  = how many bites Riaan can open (start at 1).
-      When you've plugged in his answers, change it to 2, upload, done.
-   2. PAM_EMAIL = where his answers are emailed.
+   UNLOCKED, COMPLETED and PAM_EMAIL are set at the top of the
+   <script> near the bottom. Claude updates them with each step.
    (They're in the <script> at the bottom of this file.)
 ------------------------------------------------------------------- */
 :root{
@@ -74,6 +73,18 @@ textarea,input[type=text]{width:100%;min-height:56px;padding:14px 16px;border-ra
 textarea{min-height:110px;resize:vertical}
 .back{background:none;border:0;color:var(--text-2);padding:12px 0;margin-top:16px;cursor:pointer;font-size:16px}
 
+.cmt-l{display:block;font-weight:600;font-size:16px;margin:0 0 4px}.cmt-l span{font-weight:400;color:var(--text-3)}
+.cmt{min-height:72px !important;margin-bottom:16px;font-size:16px !important}
+.sum-note{color:var(--text-2) !important;margin-top:4px}
+.peek{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:20px 16px;text-align:center}
+.peek-h{font-family:"Barlow Semi Condensed",Barlow,sans-serif;font-weight:700;font-size:24px;margin:0 0 12px}
+.peek-btns{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.peek-b{display:block;padding:12px;border-radius:12px;border:1px solid var(--line-2);background:var(--surface);font-weight:600;font-size:16px}
+.peek-b.solid{background:var(--teal);border-color:var(--teal);color:#fff}
+.peek-box{display:flex;flex-direction:column;gap:8px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;font-size:16px;color:var(--text-2)}
+.peek-badge{background:#4A2224;color:#F4A3A3;font-size:14px;font-weight:600;padding:4px 12px;border-radius:999px}
+.peek-addr{color:var(--text-3)}
+.peek-legal{margin:12px 0 0;font-size:14px;color:var(--text-3)}
 /* ---------- summary + send ---------- */
 .sum{list-style:none;padding:0;margin:0 0 24px}
 .sum li{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
@@ -129,9 +140,9 @@ textarea{min-height:110px;resize:vertical}
       <textarea id="parkBox" placeholder="Optional"></textarea>
     </div>
     <div class="btns">
-      <p style="font-weight:600;margin:0 0 4px">How would you like to send it?</p>
-      <div id="sendOpts" class="btns"></div>
-      <button class="btn" id="redoBtn" type="button" style="margin-top:16px">Review again</button>
+      <button class="btn primary" id="sendBtn" type="button">Submit</button>
+      <button class="btn" id="copyBtn" type="button">Copy answers instead</button>
+      <button class="btn" id="redoBtn" type="button">Start this step again</button>
 
     </div>
   </section>
@@ -148,13 +159,14 @@ textarea{min-height:110px;resize:vertical}
 </div>
 
 <script>
-/* =================== PAM: EDIT THESE TWO =================== */
-const UNLOCKED  = 1;                 // how many bites are open
+/* =================== PAM: EDIT THESE =================== */
+const UNLOCKED  = 2;                      // steps Riaan can open
+const COMPLETED = [1];                    // steps whose answers are in
 const PAM_EMAIL = 'pamalynne@gmail.com';
-/* =========================================================== */
+/* ======================================================= */
 
 const BITES = [
-  { title: 'Company details', blurb: 'Name, address, phone, hours', ready: true },
+  { title: 'Company details', blurb: 'Name, address, phone, hours' },
   { title: 'Your product range', blurb: 'The systems and what sits in each' },
   { title: 'Three words', blurb: 'Your take · first thing that comes to mind' },
   { title: 'Product codes', blurb: 'How you write them, using HM76' },
@@ -177,49 +189,65 @@ const BITES = [
   { title: 'Final sign-off', blurb: 'Approve the finished website' }
 ];
 
-const BITE1 = [
-  { label: 'Company name', q: 'Is this your company name?', why: 'It appears in the footer and on documents.', fact: 'Petro Strut (Pty) Ltd' },
-  { label: 'Registration number', q: 'Is this your registration number?', why: 'Shown in small print at the bottom of every page.', fact: '2015/067115/07' },
-  { label: 'Address', q: 'Is this your address?', why: 'Used for directions and collections.', fact: 'Unit 8 Celtis Business Park, 43 Martingale Road, Stormill Ext 5' },
-  { label: 'Phone number', q: 'Is this the right phone number?', why: 'Customers can tap it to call you.', fact: '(010) 065-4747' },
-  { label: 'Customer email', q: 'Is this the right email for customers?', why: 'Shown on the website for general questions.', fact: 'info@petrostrut.com' },
-  { label: 'Enquiry inbox', q: 'Where should website enquiries go?', why: 'When a customer sends a list from the website, this inbox receives it.', fact: 'info@petrostrut.com' },
-  { label: 'Trading hours', q: 'Are these your trading hours?', why: 'Shown in the footer, with an open or closed sign.', fact: 'Mon to Thu 07:30 to 16:30\nFri 07:30 to 14:30' }
-];
+/* Confirmed facts (Step 1, confirmed by Riaan) */
+const CO = {
+  name: 'Petro Strut (Pty) Ltd', reg: '2015/067115/07',
+  address: 'Unit 8 Celtis Business Park, 43 Martingale Road, Stormill Ext 5',
+  phone: '(010) 065-4747', email: 'info@petrostrut.com',
+  hours: ['Mon to Thu 07:30 to 16:30', 'Fri 07:30 to 14:30', 'Closed on weekends and public holidays']
+};
+
+const STEPS = {
+  2: {
+    peek: { from: 1, title: 'Your company details on the website', html: () =>
+      '<div class="peek"><p class="peek-h">Rather talk to someone?</p>' +
+      '<div class="peek-btns"><span class="peek-b solid">Call ' + CO.phone + '</span><span class="peek-b">Email ' + CO.email + '</span><span class="peek-b">Directions</span></div>' +
+      '<div class="peek-box"><span class="peek-badge">● Closed · opens Mon 07:30</span><span>' + CO.hours.join('<br>') + '</span><span class="peek-addr">' + CO.address + '</span></div>' +
+      '<p class="peek-legal">© ' + CO.name + ' · Reg No. ' + CO.reg + '</p></div>' },
+    cards: [
+      { label: 'Cable ladders', q: 'Is this your cable ladder range?', why: 'These are listed together under Cable ladders.', fact: 'HM76 cable ladder\nHM20B cable ladder\nEM75 cable ladder' },
+      { label: 'Cable trays', q: 'Is this your cable tray range?', why: 'These are listed together under Cable trays.', fact: 'LD19 cable tray\nMD38 cable tray\nHD76 cable tray\nRF30 cable tray\nRF50 cable tray' },
+      { label: 'Wire mesh trays', q: 'Is this your wire mesh tray range?', why: 'These are listed together under Wire mesh trays.', fact: 'WM50 wire mesh tray\nWM75 wire mesh tray' },
+      { label: 'Cable trunking', q: 'Is this your cable trunking range?', why: 'These are listed together under Cable trunking.', fact: 'ST1000 trunking\nST2000 trunking\nST4000 trunking\nST8000 trunking\nST9000 trunking' },
+      { label: 'Metal framing: channels', q: 'Are these your framing channels?', why: 'Listed under Metal framing.', fact: 'C1000 channel\nC3300 channel\nC1001 channel\nC3301 channel' },
+      { label: 'Metal framing: brackets and fittings', q: 'Are these your brackets and fittings?', why: 'Also listed under Metal framing.', fact: 'CB254 cantilever arm\nCB254S cantilever arm\nCB254D cantilever arm\nCB223 bracket\nCB223AC aircon bracket\nPost bases\nBeam clamps\nAngular fittings\nFlat fittings\nZ-fittings\nU-fittings' },
+      { label: 'Anything missing', q: 'Is anything missing from your range?', why: 'A product, a whole system, or something you supply on request.', fact: 'Nothing missing', okText: 'Nothing missing', editText: 'Add something', placeholder: 'What should be added?' }
+    ]
+  }
+};
 
 const store = {
   get(k){ try { return JSON.parse(localStorage.getItem('ps-bites-' + k)); } catch(e){ return null; } },
   set(k, v){ try { localStorage.setItem('ps-bites-' + k, JSON.stringify(v)); } catch(e){} }
 };
-
 const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 function show(id){ document.querySelectorAll('.screen').forEach((s) => s.classList.toggle('on', s.id === id)); window.scrollTo(0, 0); }
 
-/* ---------- greeting ---------- */
-
-
-/* ---------- home ---------- */
 const lockSvg = '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#8E999C" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
 const goSvg = '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#4CC4D1" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
+
+/* ---------- roadmap ---------- */
 let showAll = false;
 function renderHome(){
   const run = $('run'); run.innerHTML = '';
-  const doneCount = BITES.filter((b, i) => store.get('sent-' + (i + 1))).length;
-  $('roadFill').style.width = (doneCount / BITES.length * 100) + '%';
-  $('roadText').textContent = doneCount + ' of ' + BITES.length + ' steps complete';
+  $('roadFill').style.width = (COMPLETED.length / BITES.length * 100) + '%';
+  $('roadText').textContent = COMPLETED.length + ' of ' + BITES.length + ' steps complete';
   const SHOW = showAll ? BITES.length : Math.min(BITES.length, UNLOCKED + 2);
   BITES.slice(0, SHOW).forEach((b, i) => {
     const n = i + 1;
-    const sent = store.get('sent-' + n);
-    const open = n <= UNLOCKED && b.ready && !sent;
+    const complete = COMPLETED.indexOf(n) >= 0;
+    const sent = !complete && store.get('sent-' + n);
+    const open = !complete && !sent && n <= UNLOCKED && !!STEPS[n];
+    const clickable = open || sent;
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = 'rung ' + (sent ? 'done' : open ? 'open' : 'locked');
-    btn.setAttribute('aria-disabled', String(!(open || (sent && n === 1))));
-    const status = sent ? 'Submitted · tap to view or resend' : open ? b.blurb : (n === UNLOCKED + 1 ? 'Next · ' + b.blurb : 'Coming up · ' + b.blurb);
-    btn.innerHTML = '<span class="n">' + n + '</span><span class="t"><b>' + b.title + '</b><span>' + status + '</span></span>' +
-      (sent ? '<span class="sent-pill">✓</span>' : open ? goSvg : lockSvg);
-    btn.addEventListener('click', () => { if (open) startBite(); else if (sent && n === 1) reopenSent(); });
+    btn.className = 'rung ' + (complete || sent ? 'done' : open ? 'open' : 'locked');
+    btn.setAttribute('aria-disabled', String(!clickable));
+    const status = complete ? 'Complete' : sent ? 'Submitted · tap to view or resend' : open ? b.blurb : (n === UNLOCKED + 1 ? 'Next · ' + b.blurb : 'Coming up · ' + b.blurb);
+    btn.innerHTML = '<span class="n">' + n + '</span><span class="t"><b>' + esc(b.title) + '</b><span>' + esc(status) + '</span></span>' +
+      (complete || sent ? '<span class="sent-pill">✓</span>' : open ? goSvg : lockSvg);
+    btn.addEventListener('click', () => { if (open) startStep(n); else if (sent) reopenSent(n); });
     run.appendChild(btn);
   });
   const rest = BITES.length - Math.min(BITES.length, UNLOCKED + 2);
@@ -228,91 +256,113 @@ function renderHome(){
 }
 $('moreBtn').onclick = () => { showAll = !showAll; renderHome(); };
 
-/* ---------- bite 1 flow ---------- */
-let idx = 0, answers = [];
-function startBite(){ idx = 0; answers = BITE1.map(() => null); renderCard(); show('bite'); }
-function reopenSent(){ const saved = store.get('answers-1'); if (!saved) { startBite(); return; } answers = saved.answers; idx = BITE1.length; $('parkBox').value = saved.park || ''; renderSummary(); show('summary'); }
-function renderCard(){
-  const c = BITE1[idx];
-  $('barFill').style.width = (idx / BITE1.length * 100) + '%';
-  $('stepText').textContent = 'Step 1 · Company details · ' + (idx + 1) + ' of ' + BITE1.length;
-  $('card').innerHTML =
-    '<p class="q">' + c.q + '</p><p class="why">' + c.why + '</p>' +
-    '<p class="fact">' + c.fact.replace(/\n/g, '<br>') + '</p>' +
-    '<div class="btns"><button class="btn primary" id="yes" type="button">Correct</button>' +
-    '<button class="btn" id="no" type="button">Edit</button></div>' +
-    '<div class="edit" id="edit"><textarea id="fix" aria-label="Correct details" placeholder="Correct details, plus anything we should add"></textarea>' +
-    '<div class="btns" style="margin-top:8px"><button class="btn primary" id="saveFix" type="button" disabled>Save change</button></div></div>';
-  $('yes').onclick = () => { answers[idx] = { ok: true }; next(); };
-  $('no').onclick = () => { $('edit').classList.add('on'); $('fix').value = c.fact; $('fix').focus(); $('saveFix').disabled = false; };
-  $('fix').oninput = () => { $('saveFix').disabled = !$('fix').value.trim(); };
-  $('saveFix').onclick = () => { answers[idx] = { ok: false, value: $('fix').value.trim() }; next(); };
-  $('backBtn').textContent = idx === 0 ? 'Back to the roadmap' : 'Back';
+/* ---------- a step ---------- */
+let cur = 0, idx = 0, answers = [], peekAns = null;
+function startStep(n){
+  cur = n; idx = 0; answers = STEPS[n].cards.map(() => null); peekAns = null;
+  $('parkBox').value = '';
+  if (STEPS[n].peek) renderPeek(); else renderCard();
+  show('bite');
 }
-function next(){ idx++; if (idx < BITE1.length) renderCard(); else { $('barFill').style.width = '100%'; renderSummary(); show('summary'); } }
-$('backBtn').onclick = () => { if (idx === 0) { renderHome(); show('home'); } else { idx--; renderCard(); } };
+function stepName(){ return 'Step ' + cur + ' · ' + BITES[cur - 1].title; }
+function renderPeek(){
+  const pk = STEPS[cur].peek;
+  idx = -1;
+  $('barFill').style.width = '0%';
+  $('stepText').textContent = stepName() + ' · Sneak peek';
+  $('card').innerHTML =
+    '<p class="q">Sneak peek: ' + esc(pk.title) + '</p><p class="why">Here\'s how your Step ' + pk.from + ' answers look on the new website.</p>' +
+    pk.html() +
+    '<div style="margin-top:24px"></div>' +
+    '<label class="cmt-l" for="cmt">Comments <span>(optional)</span></label><textarea id="cmt" class="cmt" placeholder="Any thoughts on this, like you would note on a PDF"></textarea>' +
+    '<div class="btns"><button class="btn primary" id="yes" type="button">Continue</button></div>';
+  if (peekAns && peekAns.value) $('cmt').value = peekAns.value;
+  $('yes').onclick = () => { const v = $('cmt').value.trim(); peekAns = v ? { ok: false, value: v } : { ok: true }; idx = 0; renderCard(); };
+  $('backBtn').textContent = 'Back to the roadmap';
+}
+function renderCard(){
+  const cards = STEPS[cur].cards, c = cards[idx];
+  $('barFill').style.width = (idx / cards.length * 100) + '%';
+  $('stepText').textContent = stepName() + ' · ' + (idx + 1) + ' of ' + cards.length;
+  $('card').innerHTML =
+    '<p class="q">' + esc(c.q) + '</p><p class="why">' + esc(c.why) + '</p>' +
+    (c.okText ? '' : '<p class="fact">' + esc(c.fact).replace(/\n/g, '<br>') + '</p>') +
+    '<label class="cmt-l" for="cmt">Comments <span>(optional)</span></label><textarea id="cmt" class="cmt" placeholder="Any thoughts on this, like you would note on a PDF"></textarea>' +
+    '<div class="btns"><button class="btn primary" id="yes" type="button">' + esc(c.okText || 'Correct') + '</button>' +
+    '<button class="btn" id="no" type="button">' + esc(c.editText || 'Edit') + '</button></div>' +
+    '<div class="edit" id="edit"><textarea id="fix" aria-label="' + esc(c.placeholder || 'Correct details') + '" placeholder="' + esc(c.placeholder || 'Correct details, plus anything we should add') + '"></textarea>' +
+    '<div class="btns" style="margin-top:8px"><button class="btn primary" id="saveFix" type="button" disabled>Save</button></div></div>';
+  const prev = answers[idx]; if (prev && prev.note) $('cmt').value = prev.note;
+  const note = () => $('cmt').value.trim();
+  $('yes').onclick = () => { answers[idx] = { ok: true, note: note() }; next(); };
+  $('no').onclick = () => { $('edit').classList.add('on'); $('fix').value = c.okText ? '' : c.fact; $('fix').focus(); $('saveFix').disabled = !$('fix').value.trim(); };
+  $('fix').oninput = () => { $('saveFix').disabled = !$('fix').value.trim(); };
+  $('saveFix').onclick = () => { answers[idx] = { ok: false, value: $('fix').value.trim(), note: note() }; next(); };
+  $('backBtn').textContent = 'Back';
+}
+function next(){ idx++; if (idx < STEPS[cur].cards.length) renderCard(); else { $('barFill').style.width = '100%'; renderSummary(); show('summary'); } }
+$('backBtn').onclick = () => {
+  if (idx === -1 || (idx === 0 && !STEPS[cur].peek)) { renderHome(); show('home'); }
+  else if (idx === 0) renderPeek();
+  else { idx--; renderCard(); }
+};
 
 /* ---------- summary + send ---------- */
 function renderSummary(){
-  renderSendOpts();
-  $('sumList').innerHTML = BITE1.map((c, i) => {
+  const cards = STEPS[cur].cards;
+  let html = '';
+  if (peekAns) html += '<li><span class="k ' + (peekAns.ok ? 'ok">✓' : 'ch">✎') + '</span><span>Sneak peek' +
+    '<small>' + (peekAns.ok ? 'No comments' : 'Comment: ' + esc(peekAns.value)) + '</small></span></li>';
+  html += cards.map((c, i) => {
     const a = answers[i];
-    return '<li><span class="k ' + (a.ok ? 'ok">✓' : 'ch">✎') + '</span><span>' +
-      (a.ok ? c.fact : a.value).replace(/\n/g, '<br>') +
-      '<small>' + c.label + (a.ok ? ', confirmed' : ', changed (was ' + c.fact.replace(/\n/g, ' / ') + ')') + '</small></span></li>';
+    const shown = a.ok ? (c.okText || c.fact) : a.value;
+    return '<li><span class="k ' + (a.ok ? 'ok">✓' : 'ch">✎') + '</span><span>' + esc(shown).replace(/\n/g, '<br>') +
+      '<small>' + esc(c.label) + (a.ok ? ', confirmed' : (c.okText ? ', added' : ', changed')) + '</small>' +
+      (a.note ? '<small class="sum-note">Comment: ' + esc(a.note).replace(/\n/g, '<br>') + '</small>' : '') + '</span></li>';
   }).join('');
+  $('sumList').innerHTML = html;
 }
-$('redoBtn').onclick = startBite;
 function buildEmail(){
-  const lines = BITE1.map((c, i) => {
+  const cards = STEPS[cur].cards;
+  const lines = cards.map((c, i) => {
     const a = answers[i];
-    return (a.ok ? '✓ ' : '✎ CHANGED: ') + c.label + '\n   ' + (a.ok ? c.fact : a.value + '\n   (was: ' + c.fact + ')').replace(/\n(?!   )/g, ' / ');
+    const cm = a.note ? '\n   COMMENT: ' + a.note.replace(/\n/g, '\n   ') : '';
+    if (a.ok) return '✓ ' + c.label + '\n   ' + (c.okText || c.fact).replace(/\n/g, '\n   ') + cm;
+    return '✎ ' + (c.okText ? 'ADDED: ' : 'CHANGED: ') + c.label + '\n   ' + a.value.replace(/\n/g, '\n   ') + (c.okText ? '' : '\n   (was: ' + c.fact.replace(/\n/g, ', ') + ')') + cm;
   });
   const park = $('parkBox').value.trim();
+  const peek = peekAns ? 'Sneak peek of step ' + STEPS[cur].peek.from + ': ' + (peekAns.ok ? 'no comments' : 'COMMENT: ' + peekAns.value) + '\n\n' : '';
   return {
-    subject: 'Website roadmap: step 1 submitted (Company details)',
-    body: 'Step 1: Company details\n\n' + lines.join('\n\n') + (park ? '\n\nNotes for later:\n' + park : '') + '\n\nSent from the Petro Strut website roadmap.'
+    subject: 'Website roadmap: step ' + cur + ' submitted (' + BITES[cur - 1].title + ')',
+    body: 'Step ' + cur + ': ' + BITES[cur - 1].title + '\n\n' + peek + lines.join('\n\n') + (park ? '\n\nNotes for later:\n' + park : '') + '\n\nSent from the Petro Strut website roadmap.'
   };
 }
-function markSent(){ store.set('sent-1', true); store.set('answers-1', { answers: answers, park: $('parkBox').value }); }
-const METHODS = [
-  { id: 'outlook', label: 'Outlook (web)', note: 'Opens Outlook in a new tab with the email ready. Press Send there.',
-    url: (m) => 'https://outlook.office.com/mail/deeplink/compose?to=' + encodeURIComponent(PAM_EMAIL) + '&subject=' + encodeURIComponent(m.subject) + '&body=' + encodeURIComponent(m.body) },
-  { id: 'gmail', label: 'Gmail (web)', note: 'Opens Gmail in a new tab with the email ready. Press Send there.',
-    url: (m) => 'https://mail.google.com/mail/?view=cm&fs=1&to=' + encodeURIComponent(PAM_EMAIL) + '&su=' + encodeURIComponent(m.subject) + '&body=' + encodeURIComponent(m.body) },
-  { id: 'app', label: 'Email app on this device', note: 'Opens your email app with the email ready. Press Send there.',
-    url: (m) => 'mailto:' + PAM_EMAIL + '?subject=' + encodeURIComponent(m.subject) + '&body=' + encodeURIComponent(m.body), same: true },
-  { id: 'copy', label: 'Copy answers', note: '' }
-];
-function renderSendOpts(){
-  const fav = store.get('send-method') || 'outlook';
-  const order = METHODS.slice().sort((a, b) => (a.id === fav ? -1 : b.id === fav ? 1 : 0));
-  $('sendOpts').innerHTML = '';
-  order.forEach((mth, i) => {
-    const b = document.createElement('button');
-    b.type = 'button'; b.className = 'btn' + (i === 0 ? ' primary' : '');
-    b.textContent = (i === 0 ? 'Send with ' : '') + mth.label;
-    b.onclick = () => sendWith(mth);
-    $('sendOpts').appendChild(b);
-  });
+function markSent(){ store.set('sent-' + cur, true); store.set('answers-' + cur, { answers: answers, peek: peekAns, park: $('parkBox').value }); }
+function reopenSent(n){
+  const saved = store.get('answers-' + n);
+  if (!saved) { startStep(n); return; }
+  cur = n; answers = saved.answers; peekAns = saved.peek || null; idx = STEPS[n].cards.length;
+  $('parkBox').value = saved.park || '';
+  renderSummary(); show('summary');
 }
-async function sendWith(mth){
+$('sendBtn').onclick = () => {
   const m = buildEmail();
-  store.set('send-method', mth.id);
-  if (mth.id === 'copy') {
-    const text = 'To: ' + PAM_EMAIL + '\nSubject: ' + m.subject + '\n\n' + m.body;
-    let ok = false;
-    try { await navigator.clipboard.writeText(text); ok = true; } catch (e) {}
-    if (!ok) { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); try { ok = document.execCommand('copy'); } catch (e) {} ta.remove(); }
-    $('doneText').textContent = ok ? 'Your answers are copied. Open a new email to ' + PAM_EMAIL + ', paste them in and press Send to finish.' : 'Copying did not work on this device. Go back and choose one of the other options.';
-  } else {
-    const url = mth.url(m);
-    if (mth.same) window.location.href = url; else window.open(url, '_blank', 'noopener');
-    $('doneText').textContent = mth.note + ' The next step opens once your answers have been added.';
-  }
   markSent();
+  $('doneText').textContent = 'Your email has opened with your answers ready. Press Send there to finish. The next step opens once your answers have been added.';
   show('done');
-}
+  window.location.href = 'mailto:' + PAM_EMAIL + '?subject=' + encodeURIComponent(m.subject) + '&body=' + encodeURIComponent(m.body);
+};
+$('copyBtn').onclick = async () => {
+  const m = buildEmail();
+  const text = 'To: ' + PAM_EMAIL + '\nSubject: ' + m.subject + '\n\n' + m.body;
+  let ok = false;
+  try { await navigator.clipboard.writeText(text); ok = true; } catch (e) {}
+  if (!ok) { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); try { ok = document.execCommand('copy'); } catch (e) {} ta.remove(); }
+  markSent();
+  $('doneText').textContent = ok ? 'Your answers are copied. Open a new email to ' + PAM_EMAIL + ', paste them in and press Send to finish.' : 'Copying did not work on this device. Go back and use Submit instead.';
+  show('done');
+};
+$('redoBtn').onclick = () => startStep(cur);
 $('homeBtn').onclick = () => { renderHome(); show('home'); };
 
 renderHome();
