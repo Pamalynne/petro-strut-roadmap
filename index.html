@@ -106,6 +106,7 @@ textarea{min-height:110px;resize:vertical}
     <p class="step" id="roadText"></p>
     <div class="run" id="run"></div>
     <button class="back" id="moreBtn" type="button"></button>
+    <p class="more">Steps marked "Your take" ask for your opinion. There are no wrong answers and nothing is final: the first thing that comes to mind is exactly what's needed.</p>
     <p class="more">Steps may be added along the way as new details come up.</p>
   </section>
 
@@ -153,15 +154,25 @@ const PAM_EMAIL = 'pamalynne@gmail.com';
 const BITES = [
   { title: 'Company details', blurb: 'Name, address, phone, hours', ready: true },
   { title: 'Your product range', blurb: 'The systems and what sits in each' },
+  { title: 'Three words', blurb: 'Your take · first thing that comes to mind' },
   { title: 'Product codes', blurb: 'How you write them, using HM76' },
-  { title: 'Cable ladders', blurb: 'Sizes, lengths, finishes, powder coating' },
-  { title: 'Cable trays', blurb: 'Sizes, lengths, finishes, powder coating' },
-  { title: 'Wire mesh trays and trunking', blurb: 'Sizes, lengths, finishes, powder coating' },
+  { title: 'Cable ladders', blurb: 'Sizes, fittings, powder coating, trade names' },
+  { title: "Questions you're always asked", blurb: 'Your take · first thing that comes to mind' },
+  { title: 'Cable trays', blurb: 'Sizes, fittings, powder coating, trade names' },
+  { title: 'Wire mesh trays and trunking', blurb: 'Sizes, fittings, powder coating, trade names' },
+  { title: "A job you're proud of", blurb: 'Your take · first thing that comes to mind' },
   { title: 'Metal framing', blurb: 'Channels, brackets, fittings, powder coating' },
   { title: 'Custom options', blurb: 'Materials and powder coat colours' },
+  { title: 'The strangest custom request', blurb: 'Your take · first thing that comes to mind' },
+  { title: 'Enquiry email for your sales team', blurb: 'What they need to see, and how it goes into Sage' },
+  { title: 'Product finder check', blurb: 'Are the suggestions what you would recommend?' },
+  { title: 'What frustrates buyers', blurb: 'Your take · first thing that comes to mind' },
+  { title: 'Orders, returns and installation', blurb: 'The remaining questions' },
   { title: 'Load data', blurb: 'How we show it, one product at a time' },
-  { title: 'Policies', blurb: 'Orders, returns, collection' },
-  { title: 'Photos', blurb: 'What we have and what we need' }
+  { title: 'One thing you wish customers knew', blurb: 'Your take · first thing that comes to mind' },
+  { title: 'Photos', blurb: 'What already exists, and who could help' },
+  { title: 'One magic thing', blurb: 'Your take · first thing that comes to mind' },
+  { title: 'Final sign-off', blurb: 'Approve the finished website' }
 ];
 
 const BITE1 = [
