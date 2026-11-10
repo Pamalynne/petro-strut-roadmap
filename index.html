@@ -101,7 +101,7 @@ textarea{min-height:110px;resize:vertical}
   <!-- HOME: the run of bites -->
   <section id="home" class="screen on" aria-labelledby="hi">
     <h1 id="hi">Website roadmap</h1>
-    <p class="lead">The new website is being built in short steps. Each step confirms one set of details. When a step is submitted, the answers are added to the website and the next step opens.</p>
+    <p class="lead">The new website is being built in short steps. Each step confirms one set of details. When a step is submitted, the answers are added to the website and the next step opens with a sneak peek of how they look.</p>
     <div class="bar" aria-hidden="true"><i id="roadFill"></i></div>
     <p class="step" id="roadText"></p>
     <div class="run" id="run"></div>
@@ -129,8 +129,10 @@ textarea{min-height:110px;resize:vertical}
       <textarea id="parkBox" placeholder="Optional"></textarea>
     </div>
     <div class="btns">
-      <button class="btn primary" id="sendBtn" type="button">Submit step</button>
+      <button class="btn primary" id="sendBtn" type="button">Submit with Outlook</button>
+      <button class="btn" id="copyBtn" type="button">Copy answers instead</button>
       <button class="btn" id="redoBtn" type="button">Review again</button>
+
     </div>
   </section>
 
@@ -140,7 +142,7 @@ textarea{min-height:110px;resize:vertical}
       <svg width="88" height="88" viewBox="0 0 88 88" aria-hidden="true"><circle cx="44" cy="44" r="42" fill="#173D42" stroke="#2FB2C1" stroke-width="2"/><path d="M28 45l11 11 21-24" fill="none" stroke="#4CC4D1" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </div>
     <h1 style="text-align:center" id="doneTitle">Step submitted</h1>
-    <p class="lead" style="text-align:center">An email with your answers has opened. Press send in your email to finish. The next step opens once your answers have been added.</p>
+    <p class="lead" style="text-align:center" id="doneText">A new email with your answers has opened in Outlook, in a new tab. Press Send there to finish. The next step opens once your answers have been added.</p>
     <div class="btns"><button class="btn" id="homeBtn" type="button">Back to the roadmap</button></div>
   </section>
 </div>
@@ -213,11 +215,11 @@ function renderHome(){
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'rung ' + (sent ? 'done' : open ? 'open' : 'locked');
-    btn.setAttribute('aria-disabled', String(!open));
-    const status = sent ? 'Submitted' : open ? b.blurb : (n === UNLOCKED + 1 ? 'Next · ' + b.blurb : 'Coming up · ' + b.blurb);
+    btn.setAttribute('aria-disabled', String(!(open || (sent && n === 1))));
+    const status = sent ? 'Submitted · tap to view or resend' : open ? b.blurb : (n === UNLOCKED + 1 ? 'Next · ' + b.blurb : 'Coming up · ' + b.blurb);
     btn.innerHTML = '<span class="n">' + n + '</span><span class="t"><b>' + b.title + '</b><span>' + status + '</span></span>' +
       (sent ? '<span class="sent-pill">✓</span>' : open ? goSvg : lockSvg);
-    btn.addEventListener('click', () => { if (open) startBite(); });
+    btn.addEventListener('click', () => { if (open) startBite(); else if (sent && n === 1) reopenSent(); });
     run.appendChild(btn);
   });
   const rest = BITES.length - Math.min(BITES.length, UNLOCKED + 2);
@@ -229,6 +231,7 @@ $('moreBtn').onclick = () => { showAll = !showAll; renderHome(); };
 /* ---------- bite 1 flow ---------- */
 let idx = 0, answers = [];
 function startBite(){ idx = 0; answers = BITE1.map(() => null); renderCard(); show('bite'); }
+function reopenSent(){ const saved = store.get('answers-1'); if (!saved) { startBite(); return; } answers = saved.answers; idx = BITE1.length; $('parkBox').value = saved.park || ''; renderSummary(); show('summary'); }
 function renderCard(){
   const c = BITE1[idx];
   $('barFill').style.width = (idx / BITE1.length * 100) + '%';
@@ -259,15 +262,34 @@ function renderSummary(){
   }).join('');
 }
 $('redoBtn').onclick = startBite;
-$('sendBtn').onclick = () => {
+function buildEmail(){
   const lines = BITE1.map((c, i) => {
     const a = answers[i];
     return (a.ok ? '✓ ' : '✎ CHANGED: ') + c.label + '\n   ' + (a.ok ? c.fact : a.value + '\n   (was: ' + c.fact + ')').replace(/\n(?!   )/g, ' / ');
   });
   const park = $('parkBox').value.trim();
-  const body = 'Step 1: Company details\n\n' + lines.join('\n\n') + (park ? '\n\nNotes for later:\n' + park : '') + '\n\nSent from the Petro Strut website roadmap.';
-  window.location.href = 'mailto:' + PAM_EMAIL + '?subject=' + encodeURIComponent('Website roadmap: step 1 submitted (Company details)') + '&body=' + encodeURIComponent(body);
-  store.set('sent-1', true);
+  return {
+    subject: 'Website roadmap: step 1 submitted (Company details)',
+    body: 'Step 1: Company details\n\n' + lines.join('\n\n') + (park ? '\n\nNotes for later:\n' + park : '') + '\n\nSent from the Petro Strut website roadmap.'
+  };
+}
+function markSent(){ store.set('sent-1', true); store.set('answers-1', { answers: answers, park: $('parkBox').value }); }
+$('sendBtn').onclick = () => {
+  const m = buildEmail();
+  const url = 'https://outlook.office.com/mail/deeplink/compose?to=' + encodeURIComponent(PAM_EMAIL) + '&subject=' + encodeURIComponent(m.subject) + '&body=' + encodeURIComponent(m.body);
+  window.open(url, '_blank', 'noopener');
+  markSent();
+  $('doneText').textContent = 'A new email with your answers has opened in Outlook, in a new tab. Press Send there to finish. The next step opens once your answers have been added.';
+  show('done');
+};
+$('copyBtn').onclick = async () => {
+  const m = buildEmail();
+  const text = 'To: ' + PAM_EMAIL + '\nSubject: ' + m.subject + '\n\n' + m.body;
+  let ok = false;
+  try { await navigator.clipboard.writeText(text); ok = true; } catch (e) {}
+  if (!ok) { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); try { ok = document.execCommand('copy'); } catch (e) {} ta.remove(); }
+  markSent();
+  $('doneText').textContent = ok ? 'Your answers are copied. Open a new email to ' + PAM_EMAIL + ', paste them in and press Send to finish.' : 'Copying did not work on this device. Go back and use "Submit with Outlook" instead.';
   show('done');
 };
 $('homeBtn').onclick = () => { renderHome(); show('home'); };
