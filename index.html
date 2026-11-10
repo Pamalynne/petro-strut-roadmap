@@ -129,9 +129,9 @@ textarea{min-height:110px;resize:vertical}
       <textarea id="parkBox" placeholder="Optional"></textarea>
     </div>
     <div class="btns">
-      <button class="btn primary" id="sendBtn" type="button">Submit with Outlook</button>
-      <button class="btn" id="copyBtn" type="button">Copy answers instead</button>
-      <button class="btn" id="redoBtn" type="button">Review again</button>
+      <p style="font-weight:600;margin:0 0 4px">How would you like to send it?</p>
+      <div id="sendOpts" class="btns"></div>
+      <button class="btn" id="redoBtn" type="button" style="margin-top:16px">Review again</button>
 
     </div>
   </section>
@@ -254,6 +254,7 @@ $('backBtn').onclick = () => { if (idx === 0) { renderHome(); show('home'); } el
 
 /* ---------- summary + send ---------- */
 function renderSummary(){
+  renderSendOpts();
   $('sumList').innerHTML = BITE1.map((c, i) => {
     const a = answers[i];
     return '<li><span class="k ' + (a.ok ? 'ok">✓' : 'ch">✎') + '</span><span>' +
@@ -274,24 +275,44 @@ function buildEmail(){
   };
 }
 function markSent(){ store.set('sent-1', true); store.set('answers-1', { answers: answers, park: $('parkBox').value }); }
-$('sendBtn').onclick = () => {
+const METHODS = [
+  { id: 'outlook', label: 'Outlook (web)', note: 'Opens Outlook in a new tab with the email ready. Press Send there.',
+    url: (m) => 'https://outlook.office.com/mail/deeplink/compose?to=' + encodeURIComponent(PAM_EMAIL) + '&subject=' + encodeURIComponent(m.subject) + '&body=' + encodeURIComponent(m.body) },
+  { id: 'gmail', label: 'Gmail (web)', note: 'Opens Gmail in a new tab with the email ready. Press Send there.',
+    url: (m) => 'https://mail.google.com/mail/?view=cm&fs=1&to=' + encodeURIComponent(PAM_EMAIL) + '&su=' + encodeURIComponent(m.subject) + '&body=' + encodeURIComponent(m.body) },
+  { id: 'app', label: 'Email app on this device', note: 'Opens your email app with the email ready. Press Send there.',
+    url: (m) => 'mailto:' + PAM_EMAIL + '?subject=' + encodeURIComponent(m.subject) + '&body=' + encodeURIComponent(m.body), same: true },
+  { id: 'copy', label: 'Copy answers', note: '' }
+];
+function renderSendOpts(){
+  const fav = store.get('send-method') || 'outlook';
+  const order = METHODS.slice().sort((a, b) => (a.id === fav ? -1 : b.id === fav ? 1 : 0));
+  $('sendOpts').innerHTML = '';
+  order.forEach((mth, i) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'btn' + (i === 0 ? ' primary' : '');
+    b.textContent = (i === 0 ? 'Send with ' : '') + mth.label;
+    b.onclick = () => sendWith(mth);
+    $('sendOpts').appendChild(b);
+  });
+}
+async function sendWith(mth){
   const m = buildEmail();
-  const url = 'https://outlook.office.com/mail/deeplink/compose?to=' + encodeURIComponent(PAM_EMAIL) + '&subject=' + encodeURIComponent(m.subject) + '&body=' + encodeURIComponent(m.body);
-  window.open(url, '_blank', 'noopener');
+  store.set('send-method', mth.id);
+  if (mth.id === 'copy') {
+    const text = 'To: ' + PAM_EMAIL + '\nSubject: ' + m.subject + '\n\n' + m.body;
+    let ok = false;
+    try { await navigator.clipboard.writeText(text); ok = true; } catch (e) {}
+    if (!ok) { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); try { ok = document.execCommand('copy'); } catch (e) {} ta.remove(); }
+    $('doneText').textContent = ok ? 'Your answers are copied. Open a new email to ' + PAM_EMAIL + ', paste them in and press Send to finish.' : 'Copying did not work on this device. Go back and choose one of the other options.';
+  } else {
+    const url = mth.url(m);
+    if (mth.same) window.location.href = url; else window.open(url, '_blank', 'noopener');
+    $('doneText').textContent = mth.note + ' The next step opens once your answers have been added.';
+  }
   markSent();
-  $('doneText').textContent = 'A new email with your answers has opened in Outlook, in a new tab. Press Send there to finish. The next step opens once your answers have been added.';
   show('done');
-};
-$('copyBtn').onclick = async () => {
-  const m = buildEmail();
-  const text = 'To: ' + PAM_EMAIL + '\nSubject: ' + m.subject + '\n\n' + m.body;
-  let ok = false;
-  try { await navigator.clipboard.writeText(text); ok = true; } catch (e) {}
-  if (!ok) { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); try { ok = document.execCommand('copy'); } catch (e) {} ta.remove(); }
-  markSent();
-  $('doneText').textContent = ok ? 'Your answers are copied. Open a new email to ' + PAM_EMAIL + ', paste them in and press Send to finish.' : 'Copying did not work on this device. Go back and use "Submit with Outlook" instead.';
-  show('done');
-};
+}
 $('homeBtn').onclick = () => { renderHome(); show('home'); };
 
 renderHome();
