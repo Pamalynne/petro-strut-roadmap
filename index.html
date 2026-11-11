@@ -76,6 +76,19 @@ textarea{min-height:110px;resize:vertical}
 .cmt-l{display:block;font-weight:600;font-size:16px;margin:0 0 4px}.cmt-l span{font-weight:400;color:var(--text-3)}
 .cmt{min-height:72px !important;margin-bottom:16px;font-size:16px !important}
 .sum-note{color:var(--text-2) !important;margin-top:4px}
+.newstep{background:var(--tint);border:1px solid var(--outline);border-radius:12px;padding:16px;margin:0 0 24px}
+.newstep b{display:block;font-weight:600;font-size:18px;color:var(--text)}
+.newstep span{display:block;color:var(--tint-text);font-size:16px;margin:2px 0 12px}
+.was{background:var(--tint);color:var(--tint-text);border-radius:8px;padding:8px 12px;font-size:16px;margin:0 0 16px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-height:44px;padding:0 16px;border-radius:999px;border:1px solid var(--line-2);background:var(--bg);color:var(--text);font-weight:600;font-size:16px;cursor:pointer}
+.chip.on{background:var(--tint);border-color:var(--outline);color:var(--tint-text)}
+input[type=text]#own{min-height:48px}
+.peek-tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:1fr;gap:8px;text-align:center}
+.peek-tile{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 8px;display:flex;flex-direction:column;justify-content:center}
+.peek-tile b{font-weight:600;font-size:16px}.peek-tile span{font-size:14px;color:var(--tint-text);margin-top:2px}
+.peek-tile.soon{border-style:dashed;opacity:.6}
+.peek-also{margin:12px 0 0;font-size:14px;color:var(--text-2)}
 .peek{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:20px 16px;text-align:center}
 .peek-h{font-family:"Barlow Semi Condensed",Barlow,sans-serif;font-weight:700;font-size:24px;margin:0 0 12px}
 .peek-btns{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
@@ -103,9 +116,7 @@ textarea{min-height:110px;resize:vertical}
 <body>
 <div class="wrap">
   <div class="top">
-    <div class="mark" aria-hidden="true">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"><path d="M6 3v18M18 3v18M6 8h12M6 13h12M6 18h12"/></svg>
-    </div>
+    <img src="data:image/png;base64,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" alt="" style="height:40px;width:auto;display:block">
     <span class="word">PETRO STRUT</span>
   </div>
 
@@ -113,12 +124,14 @@ textarea{min-height:110px;resize:vertical}
   <section id="home" class="screen on" aria-labelledby="hi">
     <h1 id="hi">Website roadmap</h1>
     <p class="lead">The new website is being built in short steps. Each step confirms one set of details. When a step is submitted, the answers are added to the website and the next step opens with a sneak peek of how they look.</p>
+    <div class="newstep" id="newStep" style="display:none"></div>
     <div class="bar" aria-hidden="true"><i id="roadFill"></i></div>
     <p class="step" id="roadText"></p>
     <div class="run" id="run"></div>
     <button class="back" id="moreBtn" type="button"></button>
     <p class="more">Steps marked "Your take" ask for your opinion. There are no wrong answers and nothing is final: the first thing that comes to mind is exactly what's needed.</p>
     <p class="more">Steps may be added along the way as new details come up.</p>
+    <p class="more" style="margin-top:24px;text-align:center;color:var(--teal-text)">Built one rung at a time.</p>
   </section>
 
   <!-- A BITE -->
@@ -160,8 +173,8 @@ textarea{min-height:110px;resize:vertical}
 
 <script>
 /* =================== PAM: EDIT THESE =================== */
-const UNLOCKED  = 2;                      // steps Riaan can open
-const COMPLETED = [1];                    // steps whose answers are in
+const UNLOCKED  = 3;                      // steps Riaan can open
+const COMPLETED = [1, 2];                    // steps whose answers are in
 const PAM_EMAIL = 'pamalynne@gmail.com';
 /* ======================================================= */
 
@@ -216,6 +229,32 @@ const STEPS = {
   }
 };
 
+STEPS[3] = {
+  peek: { from: 2, title: 'Your product range on the website', html: () => {
+    const sys = [
+      ['Cable ladders', '7 products · 4 made to order'],
+      ['Cable trays', '7 products · 2 made to order'],
+      ['Wire mesh trays', '4 products'],
+      ['Cable trunking', '6 products'],
+      ['Metal framing', '15 products'],
+      ['More systems coming soon', '']
+    ];
+    return '<div class="peek"><p class="peek-h">Browse by system</p><div class="peek-tiles">' +
+      sys.map((s) => '<div class="peek-tile' + (s[1] ? '' : ' soon') + '"><b>' + s[0] + '</b>' + (s[1] ? '<span>' + s[1] + '</span>' : '') + '</div>').join('') +
+      '</div><p class="peek-also">Also available: anchors, clamps and clips, conduit, consumables, fasteners, structural steel and wire hangers.</p></div>';
+  } },
+  cards: [
+    { type: 'choose', max: 3, label: 'Three words',
+      q: 'If a regular customer described Petro Strut in three words, what would they say?',
+      why: 'First thing that comes to mind. There are no wrong answers, and nothing here is final. Pick up to three, or add your own.',
+      options: ['Reliable', 'Quick', 'Helpful', 'Knowledgeable', 'Honest', 'Fair', 'Flexible', 'Professional', 'Friendly', 'Accommodating', 'Problem solvers', 'Experienced'] },
+    { type: 'choose', label: 'What brings customers back',
+      q: 'What keeps customers coming back to you?',
+      why: 'Pick as many as feel true, or add your own.',
+      options: ['Quality products', 'Quick turnaround', 'Fair prices', 'Custom work others won\'t do', 'Powder coating', 'Knowledgeable team', 'Personal service', 'Stock on hand', 'Reliable delivery'] }
+  ]
+};
+
 const store = {
   get(k){ try { return JSON.parse(localStorage.getItem('ps-bites-' + k)); } catch(e){ return null; } },
   set(k, v){ try { localStorage.setItem('ps-bites-' + k, JSON.stringify(v)); } catch(e){} }
@@ -231,8 +270,23 @@ const goSvg = '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#4CC4D1"
 let showAll = false;
 function renderHome(){
   const run = $('run'); run.innerHTML = '';
+  const openStep = UNLOCKED;
+  const isNew = openStep > 1 && COMPLETED.indexOf(openStep) < 0 && !store.get('sent-' + openStep) && store.get('started-' + openStep) !== true;
+  const hasDraft = COMPLETED.indexOf(openStep) < 0 && !store.get('sent-' + openStep) && store.get('draft-' + openStep);
+  if (hasDraft && !isNew) {
+    $('newStep').style.display = 'block';
+    $('newStep').innerHTML = '<b>Step ' + openStep + ' is in progress</b><span>' + esc(BITES[openStep - 1].title) + '. Your answers so far are saved.</span><button class="btn primary" type="button" id="newGo" style="width:100%">Continue where you left off</button>';
+    $('newGo').onclick = () => startStep(openStep);
+    // fall through to rest of render
+  }
+  if (!hasDraft || isNew) $('newStep').style.display = isNew ? 'block' : 'none';
+  if (isNew) {
+    $('newStep').innerHTML = '<b>New: Step ' + openStep + ' is ready</b><span>' + esc(BITES[openStep - 1].title) + '. Your earlier answers have been added.</span>' +
+      '<button class="btn primary" type="button" id="newGo" style="width:100%">Start step ' + openStep + '</button>';
+    $('newGo').onclick = () => startStep(openStep);
+  }
   $('roadFill').style.width = (COMPLETED.length / BITES.length * 100) + '%';
-  $('roadText').textContent = COMPLETED.length + ' of ' + BITES.length + ' steps complete';
+  $('roadText').textContent = COMPLETED.length + ' of ' + BITES.length + ' rungs complete';
   const SHOW = showAll ? BITES.length : Math.min(BITES.length, UNLOCKED + 2);
   BITES.slice(0, SHOW).forEach((b, i) => {
     const n = i + 1;
@@ -244,7 +298,9 @@ function renderHome(){
     btn.type = 'button';
     btn.className = 'rung ' + (complete || sent ? 'done' : open ? 'open' : 'locked');
     btn.setAttribute('aria-disabled', String(!clickable));
-    const status = complete ? 'Complete' : sent ? 'Submitted · tap to view or resend' : open ? b.blurb : (n === UNLOCKED + 1 ? 'Next · ' + b.blurb : 'Coming up · ' + b.blurb);
+    const dr = open && store.get('draft-' + n);
+    const inProg = dr ? 'In progress · picks up where you left off' : '';
+    const status = complete ? 'Complete' : sent ? 'Submitted · tap to view or resend' : open ? (inProg || b.blurb) : (n === UNLOCKED + 1 ? 'Next · ' + b.blurb : 'Coming up · ' + b.blurb);
     btn.innerHTML = '<span class="n">' + n + '</span><span class="t"><b>' + esc(b.title) + '</b><span>' + esc(status) + '</span></span>' +
       (complete || sent ? '<span class="sent-pill">✓</span>' : open ? goSvg : lockSvg);
     btn.addEventListener('click', () => { if (open) startStep(n); else if (sent) reopenSent(n); });
@@ -258,54 +314,137 @@ $('moreBtn').onclick = () => { showAll = !showAll; renderHome(); };
 
 /* ---------- a step ---------- */
 let cur = 0, idx = 0, answers = [], peekAns = null;
-function startStep(n){
-  cur = n; idx = 0; answers = STEPS[n].cards.map(() => null); peekAns = null;
+function draftKey(n){ return 'draft-' + n; }
+function saveDraft(){
+  if (!cur) return;
+  const d = { idx: idx, answers: answers, peekAns: peekAns, park: $('parkBox').value };
+  const cm = $('cmt'), fx = $('fix'), own = $('own');
+  if (cm) d.cmt = cm.value;
+  if (fx) { d.fix = fx.value; d.editOpen = $('edit') && $('edit').classList.contains('on'); }
+  if (own) d.own = own.value;
+  if (window._picks) d.picks = window._picks.slice();
+  store.set(draftKey(cur), d);
+}
+function clearDraft(n){ try { localStorage.removeItem('ps-bites-' + draftKey(n)); } catch (e) {} }
+function startStep(n, fresh){
+  store.set('started-' + n, true);
+  cur = n; peekAns = null; answers = STEPS[n].cards.map(() => null); idx = STEPS[n].peek ? -1 : 0;
   $('parkBox').value = '';
-  if (STEPS[n].peek) renderPeek(); else renderCard();
+  window._resume = null;
+  const d = !fresh && store.get(draftKey(n));
+  if (d) { idx = d.idx; answers = d.answers || answers; peekAns = d.peekAns || null; $('parkBox').value = d.park || ''; window._resume = d; }
+  if (idx >= STEPS[n].cards.length) { renderSummary(); show('summary'); return; }
+  if (idx === -1) renderPeek(); else renderCard();
   show('bite');
 }
 function stepName(){ return 'Step ' + cur + ' · ' + BITES[cur - 1].title; }
+const CMT_HTML = '<label class="cmt-l" for="cmt">Comments <span>(optional)</span></label><textarea id="cmt" class="cmt" placeholder="Any thoughts on this"></textarea>';
+function applyResume(){
+  const d = window._resume; window._resume = null;
+  if (!d) return;
+  if ($('cmt') && d.cmt) $('cmt').value = d.cmt;
+  if ($('fix') && d.fix) { $('fix').value = d.fix; if (d.editOpen) { $('edit').classList.add('on'); $('saveFix').disabled = !d.fix.trim(); } }
+  if ($('own') && d.own) $('own').value = d.own;
+  if (d.picks && window._picks) { window._picks = d.picks.slice(); refreshChips(); }
+}
+function wireAutosave(){ ['cmt', 'fix', 'own'].forEach((id) => { if ($(id)) $(id).addEventListener('input', saveDraft); }); }
 function renderPeek(){
   const pk = STEPS[cur].peek;
-  idx = -1;
+  idx = -1; window._picks = null;
   $('barFill').style.width = '0%';
   $('stepText').textContent = stepName() + ' · Sneak peek';
   $('card').innerHTML =
     '<p class="q">Sneak peek: ' + esc(pk.title) + '</p><p class="why">Here\'s how your Step ' + pk.from + ' answers look on the new website.</p>' +
-    pk.html() +
-    '<div style="margin-top:24px"></div>' +
-    '<label class="cmt-l" for="cmt">Comments <span>(optional)</span></label><textarea id="cmt" class="cmt" placeholder="Any thoughts on this, like you would note on a PDF"></textarea>' +
+    pk.html() + '<div style="margin-top:24px"></div>' + CMT_HTML +
     '<div class="btns"><button class="btn primary" id="yes" type="button">Continue</button></div>';
   if (peekAns && peekAns.value) $('cmt').value = peekAns.value;
-  $('yes').onclick = () => { const v = $('cmt').value.trim(); peekAns = v ? { ok: false, value: v } : { ok: true }; idx = 0; renderCard(); };
+  applyResume(); wireAutosave();
+  $('yes').onclick = () => { const v = $('cmt').value.trim(); peekAns = v ? { ok: false, value: v } : { ok: true }; idx = 0; saveDraft(); renderCard(); };
   $('backBtn').textContent = 'Back to the roadmap';
+  saveDraft();
+}
+function refreshChips(){
+  document.querySelectorAll('.chip').forEach((b) => {
+    const on = window._picks.indexOf(b.dataset.v) >= 0;
+    b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on));
+  });
+  const c = STEPS[cur].cards[idx];
+  if ($('pickCount')) $('pickCount').textContent = c.max ? window._picks.length + ' of ' + c.max + ' chosen' : (window._picks.length ? window._picks.length + ' chosen' : '');
+  if ($('yes')) $('yes').disabled = !(window._picks.length || ($('own') && $('own').value.trim()));
 }
 function renderCard(){
   const cards = STEPS[cur].cards, c = cards[idx];
   $('barFill').style.width = (idx / cards.length * 100) + '%';
   $('stepText').textContent = stepName() + ' · ' + (idx + 1) + ' of ' + cards.length;
-  $('card').innerHTML =
-    '<p class="q">' + esc(c.q) + '</p><p class="why">' + esc(c.why) + '</p>' +
-    (c.okText ? '' : '<p class="fact">' + esc(c.fact).replace(/\n/g, '<br>') + '</p>') +
-    '<label class="cmt-l" for="cmt">Comments <span>(optional)</span></label><textarea id="cmt" class="cmt" placeholder="Any thoughts on this, like you would note on a PDF"></textarea>' +
-    '<div class="btns"><button class="btn primary" id="yes" type="button">' + esc(c.okText || 'Correct') + '</button>' +
-    '<button class="btn" id="no" type="button">' + esc(c.editText || 'Edit') + '</button></div>' +
-    '<div class="edit" id="edit"><textarea id="fix" aria-label="' + esc(c.placeholder || 'Correct details') + '" placeholder="' + esc(c.placeholder || 'Correct details, plus anything we should add') + '"></textarea>' +
-    '<div class="btns" style="margin-top:8px"><button class="btn primary" id="saveFix" type="button" disabled>Save</button></div></div>';
-  const prev = answers[idx]; if (prev && prev.note) $('cmt').value = prev.note;
-  const note = () => $('cmt').value.trim();
-  $('yes').onclick = () => { answers[idx] = { ok: true, note: note() }; next(); };
-  $('no').onclick = () => { $('edit').classList.add('on'); $('fix').value = c.okText ? '' : c.fact; $('fix').focus(); $('saveFix').disabled = !$('fix').value.trim(); };
-  $('fix').oninput = () => { $('saveFix').disabled = !$('fix').value.trim(); };
-  $('saveFix').onclick = () => { answers[idx] = { ok: false, value: $('fix').value.trim(), note: note() }; next(); };
+  const prev = answers[idx];
+  if (c.type === 'choose') {
+    window._picks = prev && prev.picks ? prev.picks.slice() : [];
+    $('card').innerHTML =
+      '<p class="q">' + esc(c.q) + '</p><p class="why">' + esc(c.why) + '</p>' +
+      '<div class="chips">' + c.options.map((o) => '<button type="button" class="chip" data-v="' + esc(o) + '" aria-pressed="false">' + esc(o) + '</button>').join('') + '</div>' +
+      '<p class="small" id="pickCount" style="margin:8px 0 16px"></p>' +
+      '<label class="cmt-l" for="own">Your own words <span>(optional)</span></label><input type="text" id="own" placeholder="Add your own" style="margin-bottom:16px">' +
+      CMT_HTML +
+      '<div class="btns"><button class="btn primary" id="yes" type="button" disabled>Done</button><button class="btn" id="skip" type="button">Not sure, skip for now</button></div>';
+    if (prev && prev.own) $('own').value = prev.own;
+    if (prev && prev.note) $('cmt').value = prev.note;
+    document.querySelectorAll('.chip').forEach((b) => b.onclick = () => {
+      const v = b.dataset.v, i = window._picks.indexOf(v);
+      if (i >= 0) window._picks.splice(i, 1); else { if (c.max && window._picks.length >= c.max) window._picks.shift(); window._picks.push(v); }
+      refreshChips(); saveDraft();
+    });
+    applyResume(); refreshChips(); wireAutosave();
+    $('own').addEventListener('input', refreshChips);
+    $('yes').onclick = () => { answers[idx] = { ok: true, picks: window._picks.slice(), own: $('own').value.trim(), note: $('cmt').value.trim() }; next(); };
+    $('skip').onclick = () => { answers[idx] = { skip: true, note: $('cmt').value.trim() }; next(); };
+  } else {
+    window._picks = null;
+    $('card').innerHTML =
+      '<p class="q">' + esc(c.q) + '</p><p class="why">' + esc(c.why) + '</p>' +
+      (c.okText ? '' : '<p class="fact">' + esc(c.fact).replace(/\n/g, '<br>') + '</p>') +
+      CMT_HTML +
+      '<div class="btns"><button class="btn primary" id="yes" type="button">' + esc(c.okText || 'Correct') + '</button>' +
+      '<button class="btn" id="no" type="button">' + esc(c.editText || 'Edit') + '</button></div>' +
+      '<div class="edit" id="edit"><textarea id="fix" aria-label="' + esc(c.placeholder || 'Correct details') + '" placeholder="' + esc(c.placeholder || 'Correct details, plus anything we should add') + '"></textarea>' +
+      '<div class="btns" style="margin-top:8px"><button class="btn primary" id="saveFix" type="button" disabled>Save</button></div></div>';
+    if (prev && prev.note) $('cmt').value = prev.note;
+    if (prev && (prev.ok === false || prev.editOpen)) {
+      $('edit').classList.add('on');
+      $('fix').value = prev.ok === false ? (prev.value || '') : (prev.draftFix || '');
+      $('saveFix').disabled = !$('fix').value.trim();
+    }
+    if (prev && 'ok' in prev && !prev.pending) {
+      $('card').insertAdjacentHTML('afterbegin', '<p class="was">' + (prev.ok ? 'You marked this as correct. Change anything you like.' : 'Your edit is below. Change anything you like.') + '</p>');
+    }
+    const note = () => $('cmt').value.trim();
+    $('yes').onclick = () => { answers[idx] = { ok: true, note: note() }; next(); };
+    $('no').onclick = () => { $('edit').classList.add('on'); if (!$('fix').value) $('fix').value = c.okText ? '' : c.fact; $('fix').focus(); $('saveFix').disabled = !$('fix').value.trim(); saveDraft(); };
+    $('fix').oninput = () => { $('saveFix').disabled = !$('fix').value.trim(); };
+    $('saveFix').onclick = () => { answers[idx] = { ok: false, value: $('fix').value.trim(), note: note() }; next(); };
+    if (prev && prev.ok === false) $('saveFix').textContent = 'Save and continue';
+    applyResume(); wireAutosave();
+  }
   $('backBtn').textContent = 'Back';
+  saveDraft();
 }
-function next(){ idx++; if (idx < STEPS[cur].cards.length) renderCard(); else { $('barFill').style.width = '100%'; renderSummary(); show('summary'); } }
+function next(){ idx++; saveDraft(); if (idx < STEPS[cur].cards.length) renderCard(); else { $('barFill').style.width = '100%'; renderSummary(); show('summary'); } }
+function stashCurrent(){
+  if (idx === -1) { const v = $('cmt') ? $('cmt').value.trim() : ''; if (v || !peekAns) peekAns = v ? { ok: false, value: v } : peekAns; return; }
+  const c = STEPS[cur].cards[idx]; if (!c) return;
+  const prev = answers[idx] || {};
+  const note = $('cmt') ? $('cmt').value.trim() : '';
+  if (c.type === 'choose') { answers[idx] = Object.assign({}, prev, { pending: !('ok' in prev || prev.skip), picks: (window._picks || []).slice(), own: $('own') ? $('own').value.trim() : '', note: note }); return; }
+  const editOpen = $('edit') && $('edit').classList.contains('on');
+  const fix = $('fix') ? $('fix').value.trim() : '';
+  answers[idx] = Object.assign({}, prev, { note: note, draftFix: editOpen ? fix : (prev.draftFix || ''), editOpen: editOpen || (prev.ok === false), pending: !('ok' in prev) });
+}
 $('backBtn').onclick = () => {
-  if (idx === -1 || (idx === 0 && !STEPS[cur].peek)) { renderHome(); show('home'); }
+  stashCurrent();
+  if (idx === -1 || (idx === 0 && !STEPS[cur].peek)) { saveDraft(); renderHome(); show('home'); }
   else if (idx === 0) renderPeek();
   else { idx--; renderCard(); }
 };
+$('parkBox').addEventListener('input', saveDraft);
 
 /* ---------- summary + send ---------- */
 function renderSummary(){
@@ -315,6 +454,11 @@ function renderSummary(){
     '<small>' + (peekAns.ok ? 'No comments' : 'Comment: ' + esc(peekAns.value)) + '</small></span></li>';
   html += cards.map((c, i) => {
     const a = answers[i];
+    if (c.type === 'choose') {
+      const words = a.skip ? 'Skipped for now' : (a.picks || []).concat(a.own ? [a.own] : []).join(', ');
+      return '<li><span class="k ' + (a.skip ? 'ch">–' : 'ok">✓') + '</span><span>' + esc(words) + '<small>' + esc(c.label) + '</small>' +
+        (a.note ? '<small class="sum-note">Comment: ' + esc(a.note).replace(/\n/g, '<br>') + '</small>' : '') + '</span></li>';
+    }
     const shown = a.ok ? (c.okText || c.fact) : a.value;
     return '<li><span class="k ' + (a.ok ? 'ok">✓' : 'ch">✎') + '</span><span>' + esc(shown).replace(/\n/g, '<br>') +
       '<small>' + esc(c.label) + (a.ok ? ', confirmed' : (c.okText ? ', added' : ', changed')) + '</small>' +
@@ -327,6 +471,7 @@ function buildEmail(){
   const lines = cards.map((c, i) => {
     const a = answers[i];
     const cm = a.note ? '\n   COMMENT: ' + a.note.replace(/\n/g, '\n   ') : '';
+    if (c.type === 'choose') return (a.skip ? '– ' + c.label + '\n   Skipped for now' : '✓ ' + c.label + '\n   ' + (a.picks || []).join(', ') + (a.own ? '\n   OWN WORDS: ' + a.own : '')) + cm;
     if (a.ok) return '✓ ' + c.label + '\n   ' + (c.okText || c.fact).replace(/\n/g, '\n   ') + cm;
     return '✎ ' + (c.okText ? 'ADDED: ' : 'CHANGED: ') + c.label + '\n   ' + a.value.replace(/\n/g, '\n   ') + (c.okText ? '' : '\n   (was: ' + c.fact.replace(/\n/g, ', ') + ')') + cm;
   });
@@ -337,7 +482,7 @@ function buildEmail(){
     body: 'Step ' + cur + ': ' + BITES[cur - 1].title + '\n\n' + peek + lines.join('\n\n') + (park ? '\n\nNotes for later:\n' + park : '') + '\n\nSent from the Petro Strut website roadmap.'
   };
 }
-function markSent(){ store.set('sent-' + cur, true); store.set('answers-' + cur, { answers: answers, peek: peekAns, park: $('parkBox').value }); }
+function markSent(){ clearDraft(cur); store.set('sent-' + cur, true); store.set('answers-' + cur, { answers: answers, peek: peekAns, park: $('parkBox').value }); }
 function reopenSent(n){
   const saved = store.get('answers-' + n);
   if (!saved) { startStep(n); return; }
@@ -362,7 +507,7 @@ $('copyBtn').onclick = async () => {
   $('doneText').textContent = ok ? 'Your answers are copied. Open a new email to ' + PAM_EMAIL + ', paste them in and press Send to finish.' : 'Copying did not work on this device. Go back and use Submit instead.';
   show('done');
 };
-$('redoBtn').onclick = () => startStep(cur);
+$('redoBtn').onclick = () => { clearDraft(cur); startStep(cur, true); };
 $('homeBtn').onclick = () => { renderHome(); show('home'); };
 
 renderHome();
