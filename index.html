@@ -80,6 +80,10 @@ textarea{min-height:110px;resize:vertical}
 .newstep b{display:block;font-weight:600;font-size:18px;color:var(--text)}
 .newstep span{display:block;color:var(--tint-text);font-size:16px;margin:2px 0 12px}
 .was{background:var(--tint);color:var(--tint-text);border-radius:8px;padding:8px 12px;font-size:16px;margin:0 0 16px}
+.ans{min-height:96px !important}
+.exrow{display:grid;grid-template-columns:1fr;gap:4px;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--line)}
+.exrow .exc{font-family:'IBM Plex Mono',ui-monospace,monospace}
+.exrow input{min-height:48px;padding:10px 12px;font-size:16px}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{min-height:44px;padding:0 16px;border-radius:999px;border:1px solid var(--line-2);background:var(--bg);color:var(--text);font-weight:600;font-size:16px;cursor:pointer}
 .chip.on{background:var(--tint);border-color:var(--outline);color:var(--tint-text)}
@@ -123,7 +127,7 @@ input[type=text]#own{min-height:48px}
   <!-- HOME: the run of bites -->
   <section id="home" class="screen on" aria-labelledby="hi">
     <h1 id="hi">Website roadmap</h1>
-    <p class="lead">The new website is being built in short steps. Each step confirms one set of details. When a step is submitted, the answers are added to the website and the next step opens with a sneak peek of how they look.</p>
+    <p class="lead">The new website is being built in short steps. Each step confirms one set of details. When a step is submitted, the next step opens. Sneak peeks will appear later, once real changes are being made to the website.</p>
     <div class="newstep" id="newStep" style="display:none"></div>
     <div class="bar" aria-hidden="true"><i id="roadFill"></i></div>
     <p class="step" id="roadText"></p>
@@ -173,8 +177,8 @@ input[type=text]#own{min-height:48px}
 
 <script>
 /* =================== PAM: EDIT THESE =================== */
-const UNLOCKED  = 3;                      // steps Riaan can open
-const COMPLETED = [1, 2];                    // steps whose answers are in
+const UNLOCKED  = 4;                      // steps Riaan can open
+const COMPLETED = [1, 2, 3];                    // steps whose answers are in
 const PAM_EMAIL = 'pamalynne@gmail.com';
 /* ======================================================= */
 
@@ -255,6 +259,22 @@ STEPS[3] = {
   ]
 };
 
+STEPS[4] = {
+  cards: [
+    { type: 'open', label: 'How the code system works', q: 'Your product codes are a system of their own. How does it work?',
+      why: 'When a customer builds an enquiry on the website, the email to your sales team will list the items in your codes, ready for Sage. Take us through how a code is built, part by part. The first thing that comes to mind is fine.',
+      placeholder: 'For example: what each part of the code stands for' },
+    { type: 'examples', label: 'Examples from Sage', q: 'Give us a few examples from Sage',
+      why: 'Three examples, or more if you like. A mix works best, like a straight length, a bend, a cover or something from framing. For each, the code and what it is.',
+      rows: 3, min: 3 },
+    { type: 'open', label: 'Finishes, materials and custom in the code', q: 'Does anything else change the code?',
+      why: 'For example a finish, a material, powder coating or a custom size. If nothing does, just say so.',
+      placeholder: 'How these show in the code, if at all' },
+    { type: 'choose', max: 1, label: 'Do customers know the codes', q: 'Do customers usually know your codes?', why: 'This decides whether search should lead with codes or with names.', options: ['Most do', 'Some do', 'Rarely, they use names'] },
+    { type: 'choose', max: 1, label: 'Show codes on the website', q: 'Should customers see your Sage codes on the website?', why: 'They can show on product pages, or only in the enquiry email to your team.', options: ['Yes, show them', 'Only in the enquiry email', 'Not sure yet'] }
+  ]
+};
+
 const store = {
   get(k){ try { return JSON.parse(localStorage.getItem('ps-bites-' + k)); } catch(e){ return null; } },
   set(k, v){ try { localStorage.setItem('ps-bites-' + k, JSON.stringify(v)); } catch(e){} }
@@ -281,7 +301,7 @@ function renderHome(){
   }
   if (!hasDraft || isNew) $('newStep').style.display = isNew ? 'block' : 'none';
   if (isNew) {
-    $('newStep').innerHTML = '<b>New: Step ' + openStep + ' is ready</b><span>' + esc(BITES[openStep - 1].title) + '. Your earlier answers have been added.</span>' +
+    $('newStep').innerHTML = '<b>New: Step ' + openStep + ' is ready</b><span>' + esc(BITES[openStep - 1].title) + '. Your earlier answers have been received.</span>' +
       '<button class="btn primary" type="button" id="newGo" style="width:100%">Start step ' + openStep + '</button>';
     $('newGo').onclick = () => startStep(openStep);
   }
@@ -354,7 +374,7 @@ function renderPeek(){
   $('barFill').style.width = '0%';
   $('stepText').textContent = stepName() + ' · Sneak peek';
   $('card').innerHTML =
-    '<p class="q">Sneak peek: ' + esc(pk.title) + '</p><p class="why">Here\'s how your Step ' + pk.from + ' answers look on the new website.</p>' +
+    '<p class="q">' + (pk.plain ? '' : 'Sneak peek: ') + esc(pk.title) + '</p><p class="why">' + esc(pk.intro || ('Here\'s how your Step ' + pk.from + ' answers could look on the new website.')) + '</p>' +
     pk.html() + '<div style="margin-top:24px"></div>' + CMT_HTML +
     '<div class="btns"><button class="btn primary" id="yes" type="button">Continue</button></div>';
   if (peekAns && peekAns.value) $('cmt').value = peekAns.value;
@@ -377,7 +397,43 @@ function renderCard(){
   $('barFill').style.width = (idx / cards.length * 100) + '%';
   $('stepText').textContent = stepName() + ' · ' + (idx + 1) + ' of ' + cards.length;
   const prev = answers[idx];
-  if (c.type === 'choose') {
+  if (c.type === 'examples') {
+    window._picks = null;
+    const rows = (prev && prev.rows && prev.rows.length) ? prev.rows.slice() : Array.from({ length: c.rows }, () => ({ code: '', desc: '' }));
+    const rowHtml = (rw, i) => '<div class="exrow"><input type="text" class="exc" data-i="' + i + '" placeholder="Code" value="' + esc(rw.code) + '"><input type="text" class="exd" data-i="' + i + '" placeholder="What it is" value="' + esc(rw.desc) + '"></div>';
+    $('card').innerHTML =
+      '<p class="q">' + esc(c.q) + '</p><p class="why">' + esc(c.why) + '</p>' +
+      '<div id="exrows">' + rows.map(rowHtml).join('') + '</div>' +
+      '<p class="small" id="exCount" style="margin:0"></p>' +
+      '<button class="back" id="addRow" type="button" style="margin:0 0 16px;padding:8px 0">+ Add another example</button>' +
+      CMT_HTML +
+      '<div class="btns"><button class="btn primary" id="yes" type="button" disabled>Done</button><button class="btn" id="skip" type="button">Not sure, skip for now</button></div>';
+    if (prev && prev.note) $('cmt').value = prev.note;
+    const read = () => Array.from(document.querySelectorAll('.exrow')).map((el) => ({ code: el.querySelector('.exc').value.trim(), desc: el.querySelector('.exd').value.trim() }));
+    const filled = () => read().filter((x) => x.code || x.desc);
+    const enough = () => read().filter((x) => x.code && x.desc).length >= (c.min || 1);
+    const upd = () => { $('yes').disabled = !enough(); if ($('exCount')) $('exCount').textContent = read().filter((x) => x.code && x.desc).length + ' of ' + (c.min || 1) + ' examples'; answers[idx] = Object.assign({}, answers[idx] || {}, { pending: !(answers[idx] && 'ok' in answers[idx] && !answers[idx].pending), rows: read(), note: $('cmt').value.trim() }); saveDraft(); };
+    const wire = () => document.querySelectorAll('.exc,.exd').forEach((el) => el.oninput = upd);
+    wire();
+    $('addRow').onclick = () => { if (document.querySelectorAll('.exrow').length >= 10) return; $('exrows').insertAdjacentHTML('beforeend', rowHtml({ code: '', desc: '' }, document.querySelectorAll('.exrow').length)); wire(); };
+    $('cmt').addEventListener('input', upd);
+    $('yes').disabled = !enough();
+    $('exCount').textContent = read().filter((x) => x.code && x.desc).length + ' of ' + (c.min || 1) + ' examples';
+    $('yes').onclick = () => { answers[idx] = { ok: true, rows: filled(), note: $('cmt').value.trim() }; next(); };
+    $('skip').onclick = () => { answers[idx] = { skip: true, note: $('cmt').value.trim() }; next(); };
+  } else if (c.type === 'open') {
+    window._picks = null;
+    $('card').innerHTML =
+      '<p class="q">' + esc(c.q) + '</p><p class="why">' + esc(c.why) + '</p>' +
+      '<textarea id="own" class="ans" placeholder="' + esc(c.placeholder || '') + '" style="margin-bottom:16px"></textarea>' +
+      '<div class="btns"><button class="btn primary" id="yes" type="button" disabled>Done</button><button class="btn" id="skip" type="button">Not sure, skip for now</button></div>';
+    if (prev && (prev.text || prev.own)) $('own').value = prev.text || prev.own;
+    applyResume(); wireAutosave();
+    const upd = () => { $('yes').disabled = !$('own').value.trim(); };
+    $('own').addEventListener('input', upd); upd();
+    $('yes').onclick = () => { answers[idx] = { ok: true, text: $('own').value.trim() }; next(); };
+    $('skip').onclick = () => { answers[idx] = { skip: true }; next(); };
+  } else if (c.type === 'choose') {
     window._picks = prev && prev.picks ? prev.picks.slice() : [];
     $('card').innerHTML =
       '<p class="q">' + esc(c.q) + '</p><p class="why">' + esc(c.why) + '</p>' +
@@ -433,6 +489,8 @@ function stashCurrent(){
   const c = STEPS[cur].cards[idx]; if (!c) return;
   const prev = answers[idx] || {};
   const note = $('cmt') ? $('cmt').value.trim() : '';
+  if (c.type === 'examples') return;
+  if (c.type === 'open') { answers[idx] = Object.assign({}, prev, { pending: !('ok' in prev || prev.skip), text: $('own') ? $('own').value.trim() : '', note: note }); return; }
   if (c.type === 'choose') { answers[idx] = Object.assign({}, prev, { pending: !('ok' in prev || prev.skip), picks: (window._picks || []).slice(), own: $('own') ? $('own').value.trim() : '', note: note }); return; }
   const editOpen = $('edit') && $('edit').classList.contains('on');
   const fix = $('fix') ? $('fix').value.trim() : '';
@@ -454,6 +512,15 @@ function renderSummary(){
     '<small>' + (peekAns.ok ? 'No comments' : 'Comment: ' + esc(peekAns.value)) + '</small></span></li>';
   html += cards.map((c, i) => {
     const a = answers[i];
+    if (c.type === 'examples') {
+      const list = a.skip ? 'Skipped for now' : a.rows.map((x) => esc(x.code) + (x.desc ? ' = ' + esc(x.desc) : '')).join('<br>');
+      return '<li><span class="k ' + (a.skip ? 'ch">–' : 'ok">✓') + '</span><span>' + list + '<small>' + esc(c.label) + '</small>' +
+        (a.note ? '<small class="sum-note">Comment: ' + esc(a.note).replace(/\n/g, '<br>') + '</small>' : '') + '</span></li>';
+    }
+    if (c.type === 'open') {
+      return '<li><span class="k ' + (a.skip ? 'ch">–' : 'ok">✓') + '</span><span>' + (a.skip ? 'Skipped for now' : esc(a.text).replace(/\n/g, '<br>')) + '<small>' + esc(c.label) + '</small>' +
+        (a.note ? '<small class="sum-note">Comment: ' + esc(a.note).replace(/\n/g, '<br>') + '</small>' : '') + '</span></li>';
+    }
     if (c.type === 'choose') {
       const words = a.skip ? 'Skipped for now' : (a.picks || []).concat(a.own ? [a.own] : []).join(', ');
       return '<li><span class="k ' + (a.skip ? 'ch">–' : 'ok">✓') + '</span><span>' + esc(words) + '<small>' + esc(c.label) + '</small>' +
@@ -471,6 +538,8 @@ function buildEmail(){
   const lines = cards.map((c, i) => {
     const a = answers[i];
     const cm = a.note ? '\n   COMMENT: ' + a.note.replace(/\n/g, '\n   ') : '';
+    if (c.type === 'examples') return (a.skip ? '– ' + c.label + '\n   Skipped for now' : '✓ ' + c.label + '\n' + a.rows.map((x) => '   ' + x.code + (x.desc ? '  =  ' + x.desc : '')).join('\n')) + cm;
+    if (c.type === 'open') return (a.skip ? '– ' + c.label + '\n   Skipped for now' : '✓ ' + c.label + '\n   ' + a.text.replace(/\n/g, '\n   ')) + cm;
     if (c.type === 'choose') return (a.skip ? '– ' + c.label + '\n   Skipped for now' : '✓ ' + c.label + '\n   ' + (a.picks || []).join(', ') + (a.own ? '\n   OWN WORDS: ' + a.own : '')) + cm;
     if (a.ok) return '✓ ' + c.label + '\n   ' + (c.okText || c.fact).replace(/\n/g, '\n   ') + cm;
     return '✎ ' + (c.okText ? 'ADDED: ' : 'CHANGED: ') + c.label + '\n   ' + a.value.replace(/\n/g, '\n   ') + (c.okText ? '' : '\n   (was: ' + c.fact.replace(/\n/g, ', ') + ')') + cm;
