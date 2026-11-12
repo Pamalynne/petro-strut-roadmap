@@ -177,8 +177,8 @@ input[type=text]#own{min-height:48px}
 
 <script>
 /* =================== PAM: EDIT THESE =================== */
-const UNLOCKED  = 4;                      // steps Riaan can open
-const COMPLETED = [1, 2, 3];                    // steps whose answers are in
+const UNLOCKED  = 5;                      // steps Riaan can open
+const COMPLETED = [1, 2, 3, 4];                    // steps whose answers are in
 const PAM_EMAIL = 'pamalynne@gmail.com';
 /* ======================================================= */
 
@@ -272,6 +272,27 @@ STEPS[4] = {
       placeholder: 'How these show in the code, if at all' },
     { type: 'choose', max: 1, label: 'Do customers know the codes', q: 'Do customers usually know your codes?', why: 'This decides whether search should lead with codes or with names.', options: ['Most do', 'Some do', 'Rarely, they use names'] },
     { type: 'choose', max: 1, label: 'Show codes on the website', q: 'Should customers see your Sage codes on the website?', why: 'They can show on product pages, or only in the enquiry email to your team.', options: ['Yes, show them', 'Only in the enquiry email', 'Not sure yet'] }
+  ]
+};
+
+STEPS[5] = {
+  cards: [
+    { label: 'HM76', q: 'Is this right for HM76?', why: 'From your catalogue. Widths in mm.',
+      fact: 'Widths: 100, 150, 200, 300, 400, 500, 600, 700, 800, 1000\nStandard length: 3 m\nFinish: hot-dip galvanised (HDG)' },
+    { label: 'HM20B', q: 'Is this right for HM20B?', why: 'From your catalogue. Widths in mm.',
+      fact: 'Widths: 150, 200, 300, 400, 500, 600, 800, 1000\nStandard length: 5.8 m\nStructural steel, hot-dip galvanised (HDG)\nMade to order' },
+    { label: 'EM75', q: 'Is this right for EM75?', why: 'From your catalogue. Widths in mm.',
+      fact: 'Widths: 150, 200, 300, 400, 500, 600, 800, 1000\nStandard length: 3 m\nFinish: hot-dip galvanised (HDG)' },
+    { type: 'open', label: 'HM55, HM20C, EM100, EM150', q: 'And the new ones: HM55, HM20C, EM100 and EM150?',
+      why: 'For each, the widths, standard length and finish. Whatever you know off-hand is fine; anything missing can come later.',
+      placeholder: 'For example: HM55, widths 100 to 600, 3 m, HDG' },
+    { type: 'choose', label: 'Pieces available', q: 'Which pieces do your cable ladders come in?', why: 'Pick all that apply, or add your own.',
+      options: ['Straight length (CL)', 'Horizontal bend (HB)', 'Internal bend (IB)', 'External bend (EB)', 'Tee (T)', '4-way (4W)', 'Covers', 'Reducers', 'Joiners or couplers'] },
+    { type: 'choose', max: 1, label: 'Powder coating', q: 'Can cable ladders be powder coated?', why: 'If only some can, say which in the comments.',
+      options: ['Yes, all of them', 'Some of them', 'No'] },
+    { label: 'Names customers use', q: 'Is this what customers call cable ladder?',
+      why: 'These help customers find you on Google and in the website search. Add any others, including competitor names. They are used for search only and never shown.',
+      fact: 'Cable rack, ladder rack, ladder tray, medium duty ladder, heavy duty ladder, structural ladder, edge mount ladder' }
   ]
 };
 
